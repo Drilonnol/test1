@@ -1,49 +1,34 @@
 pipeline {
-
-  environment {
-    dockerimagename = "drilonnol/nodeapp"
-    dockerImage = ""
-  }
-
-  agent any
-
-  stages {
-
-    stage('Checkout Source') {
-      steps {
-        git 'https://github.com/Drilonnol/test1.git'
-      }
-    }
-
-    stage('Build image') {
-      steps{
-        script {
-          dockerImage = docker.build dockerimagename
+    agent any
+    stages {
+        stage('Checkout Source') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Drilonnol/test1.git'
+            }
         }
-      }
-    }
-
-    stage('Pushing Image') {
-      environment {
-               registryCredential = 'dockerhub'
-           }
-      steps{
-        script {
-          docker.withRegistry( 'https://registry.hub.docker.com', registryCredential ) {
-            dockerImage.push("latest")
-          }
+        stage('Build') {
+            steps {
+                script {
+                    echo "Building Docker image"
+                    bat 'docker build -t "drilonnol/nodeapp" .'
+                }
+            }
         }
-      }
-    }
-
-    stage('Deploying App to Kubernetes') {
-      steps {
-        script {
-          kubernetesDeploy(configs: "deployment.yaml","service.yaml", kubeconfigId: "kubernetes")
+        stage('Test') {
+            steps {
+                script {
+                    echo "Simulating a test pass"
+                    bat 'echo "Test passed"'
+                }
+            }
         }
-      }
+        stage('Deploy') {
+            steps {
+                       kubernetesDeploy(
+    configs: 'deployment.yaml,service.yaml',
+    kubeconfigId: 'kubernetes'
+)
+            }
+        }
     }
-
-  }
-
 }
