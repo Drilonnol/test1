@@ -1,0 +1,3 @@
+{
+    "databaseUrl": "postgres://postgres:foobarbaz@localhost:5433/postgres"
+  }
